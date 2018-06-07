@@ -59,11 +59,9 @@ function CountdownTimer(seconds, name) {
 }
 
 // configureStartButton wires a timer to a start button
-function configureStartButton(elem, name) {
+function configureStartButton(timer, elem) {
     display = elem.parentNode.children[2].children[0];
-    maxSeconds = elem.parentNode.children[2].children[1].innerHTML;
 
-    timer = new CountdownTimer(maxSeconds, name);
     timer.OnTick(function(display){
         display.innerHTML = this.SecondsRemaining();
     }.bind(timer), display);
@@ -73,9 +71,20 @@ function configureStartButton(elem, name) {
 
 // main configures the webpage on startup
 function main() {
-    buttons = document.getElementsByClassName("button-start");
-    for (i = 0; i < buttons.length; i++) {
-        configureStartButton(buttons[i], i);
+    timers = [
+        "timer-mega-health",
+        "timer-heavy-armor",
+        "timer-quad-damage",
+        "timer-protection",
+    ]
+    for (i = 0; i < timers.length; i++) {
+        elem = document.getElementById(timers[i]);
+        maxSeconds = elem.children[2].children[1].innerHTML;
+        startButton = elem.children[3];
+        resetButton = elem.children[4];
+
+        timer = new CountdownTimer(maxSeconds, i);
+        configureStartButton(timer, startButton);
     }
 }
 
