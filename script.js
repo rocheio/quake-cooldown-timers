@@ -1,6 +1,7 @@
-/** Represents a timer that can count down. */
-function CountdownTimer(seconds) {
+// CountdownTimer can count down from seconds to zero
+function CountdownTimer(seconds, name) {
     this.seconds = seconds || (25*60);
+    this.name = name || null;
     this.tickRate = 500; // Milliseconds
     this.tickFunctions = [];
     this.isRunning = false;
@@ -9,7 +10,6 @@ function CountdownTimer(seconds) {
     // tick recursively fires tickFunctions at tickRate until time has elapsed
     this.tick = function() {
         secondsRemaining = this.SecondsRemaining();
-        console.log(secondsRemaining);
 
         if (this.isRunning === false) {
             this.remaining = secondsRemaining;
@@ -24,8 +24,10 @@ function CountdownTimer(seconds) {
         }
 
         // Execute each tickFunction in the list with this as an argument
-        this.tickFunctions.forEach(function(func) {
-            func.call(this);
+        this.tickFunctions.forEach(function(tf) {
+            func = tf[0];
+            context = tf[1];
+            func(context);
         }.bind(this));
     };
 
@@ -49,28 +51,31 @@ function CountdownTimer(seconds) {
     };
 
     /** Add a function to the timer's tickFunctions. */
-    this.OnTick = function(func) {
+    this.OnTick = function(func, context) {
         if (typeof func === 'function') {
-            this.tickFunctions.push(func);
+            this.tickFunctions.push([func, context]);
         }
     };
 }
 
-function configureStartButton(elem) {
+// configureStartButton wires a timer to a start button
+function configureStartButton(elem, name) {
     display = elem.parentNode.children[2].children[0];
+    maxSeconds = elem.parentNode.children[2].children[1].innerHTML;
 
-    timer = new CountdownTimer(30);
-    timer.OnTick(function(){
-        display.innerHTML = timer.SecondsRemaining();
-    }.bind(timer));
+    timer = new CountdownTimer(maxSeconds, name);
+    timer.OnTick(function(display){
+        display.innerHTML = this.SecondsRemaining();
+    }.bind(timer), display);
 
     elem.onclick = timer.Start.bind(timer);
 }
 
+// main configures the webpage on startup
 function main() {
     buttons = document.getElementsByClassName("button-start");
     for (i = 0; i < buttons.length; i++) {
-        configureStartButton(buttons[i]);
+        configureStartButton(buttons[i], i);
     }
 }
 
