@@ -23,16 +23,23 @@ function CountdownTimer(seconds, name) {
             this.Stop();
         }
 
-        // Execute each tickFunction in the list with this as an argument
+        this.execute();
+    };
+
+    // execute runs all tickFunctions attached to the timer
+    this.execute = function() {
         this.tickFunctions.forEach(function(tf) {
             func = tf[0];
             context = tf[1];
-            func(context);
+            func(this, context);
         }.bind(this));
-    };
+    }
 
     // Start makes the timer start ticking until stopped
     this.Start = function() {
+        if (this.isRunning) {
+            return;
+        }
         this.isRunning = true;
         this.startTime = Date.now();
         this.tick.bind(this)();
@@ -43,6 +50,12 @@ function CountdownTimer(seconds, name) {
         this.isRunning = false;
     };
 
+    // Reset stops and starts the timer
+    this.Reset = function() {
+        this.Stop();
+        this.Start();
+    }
+
     // SecondsRemaining returns the number of seconds since start as an int
     this.SecondsRemaining = function() {
         timeSince = ((Date.now() - this.startTime) / 1000) | 0;
@@ -50,23 +63,12 @@ function CountdownTimer(seconds, name) {
         return remaining > 0 ? remaining : 0;
     };
 
-    /** Add a function to the timer's tickFunctions. */
+    // OnTick adds a function to execute on each tick of the timer
     this.OnTick = function(func, context) {
         if (typeof func === 'function') {
             this.tickFunctions.push([func, context]);
         }
     };
-}
-
-// configureStartButton wires a timer to a start button
-function configureStartButton(timer, elem) {
-    display = elem.parentNode.children[2].children[0];
-
-    timer.OnTick(function(display){
-        display.innerHTML = this.SecondsRemaining();
-    }.bind(timer), display);
-
-    elem.onclick = timer.Start.bind(timer);
 }
 
 // main configures the webpage on startup
@@ -79,12 +81,18 @@ function main() {
     ]
     for (i = 0; i < timers.length; i++) {
         elem = document.getElementById(timers[i]);
+        display = elem.children[2].children[0];
         maxSeconds = elem.children[2].children[1].innerHTML;
         startButton = elem.children[3];
         resetButton = elem.children[4];
 
         timer = new CountdownTimer(maxSeconds, i);
-        configureStartButton(timer, startButton);
+        timer.OnTick(function(timer, display){
+            display.innerHTML = timer.SecondsRemaining();
+        }, display);
+
+        startButton.onclick = timer.Start.bind(timer);
+        resetButton.onclick = timer.Reset.bind(timer);
     }
 }
 
