@@ -1,0 +1,6 @@
+.timers {
+    display: flex;
+}
+.timer-container {
+    margin: 0 1rem;
+}
